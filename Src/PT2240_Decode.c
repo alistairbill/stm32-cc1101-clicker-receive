@@ -1,5 +1,8 @@
 #include "PT2240_Decode.h"
 
+// initial version based on
+// https://github.com/albertyeh/STM32_NEC_Decode
+
 void PT2240_TIM_IC_CaptureCallback(PT2240 *handle)
 {
     if (handle->state == PT2240_INIT) {
