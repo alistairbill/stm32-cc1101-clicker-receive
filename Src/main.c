@@ -124,7 +124,7 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  // CC1101_Init();
+  CC1101_Init();
   Decoder_Init();
 
   /* USER CODE END 2 */
@@ -315,7 +315,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = CC1101_NSS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(CC1101_NSS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : CC1101_GDO2_Pin */

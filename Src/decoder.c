@@ -22,6 +22,8 @@ rx_mode mode = RX_SYNC;
 uint32_t last_pulse_width = 0;
 size_t bits = 0;
 uint32_t data = 0;
+uint32_t times[1024];
+size_t counter = 0;
 
 void Decoder_Init()
 {
@@ -65,7 +67,7 @@ static void payload(uint32_t high_pulse_width, uint32_t low_pulse_width)
     // fail! look for a sync bit again
     mode = RX_SYNC;
   }
-  if (bits >= 32) {
+  if (bits >= 24) {
     Data_Received();
     bits = 0;
     data = 0;
@@ -95,4 +97,6 @@ void Decoder_Edge_Callback(void)
     // of the low pulse as well
     last_pulse_width = pulse_width;
   }
+  times[counter++] = pulse_width;
+  if (counter > 1023) counter = 0;
 }

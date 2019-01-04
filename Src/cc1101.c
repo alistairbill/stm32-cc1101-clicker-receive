@@ -133,7 +133,7 @@ static void chip_select(int state)
 static void wait_chip_ready()
 {
   uint32_t spinlock_protection = 0;
-	while(HAL_GPIO_ReadPin(CC1101_GDO2_GPIO_Port, CC1101_GDO2_Pin) == GPIO_PIN_SET
+	while(HAL_GPIO_ReadPin(CC1101_MISO_GPIO_Port, CC1101_MISO_Pin) == GPIO_PIN_SET
     && ++spinlock_protection < 10000);
   if (spinlock_protection >= 10000) {
     Error_Handler();
