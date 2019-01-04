@@ -106,8 +106,9 @@ void Error_Handler(void);
 #define LD5_GPIO_Port GPIOD
 #define LD6_Pin GPIO_PIN_15
 #define LD6_GPIO_Port GPIOD
-#define CC1101_GDO0_Pin GPIO_PIN_6
-#define CC1101_GDO0_GPIO_Port GPIOC
+#define RF_Pin_Pin GPIO_PIN_8
+#define RF_Pin_GPIO_Port GPIOC
+#define RF_Pin_EXTI_IRQn EXTI9_5_IRQn
 #define SWDIO_Pin GPIO_PIN_13
 #define SWDIO_GPIO_Port GPIOA
 #define SWCLK_Pin GPIO_PIN_14
