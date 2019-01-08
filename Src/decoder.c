@@ -24,10 +24,13 @@ size_t bits = 0;
 uint32_t data = 0;
 uint32_t times[1024];
 size_t counter = 0;
+bool ignore_edge = false;
+bool initialized = false;
 
 void Decoder_Init()
 {
   HAL_TIM_Base_Start(&htim3);
+  initialized = true;
 }
 
 void Data_Received(void)
@@ -69,6 +72,7 @@ static void payload(uint32_t high_pulse_width, uint32_t low_pulse_width)
   }
   if (bits >= 24) {
     Data_Received();
+    // reset the state machine
     bits = 0;
     data = 0;
     mode = RX_SYNC;
@@ -77,8 +81,22 @@ static void payload(uint32_t high_pulse_width, uint32_t low_pulse_width)
 
 void Decoder_Edge_Callback(void)
 {
+  if (!initialized) {
+    return;
+  }
+  if (ignore_edge) {
+    ignore_edge = false;
+    return;
+  }
   uint32_t pulse_width = __HAL_TIM_GetCounter(&htim3);
-  __HAL_TIM_SetCounter(&htim3, 0);
+  if (pulse_width > 30) {
+    __HAL_TIM_SetCounter(&htim3, 0);
+  } else {
+    // short pulse
+    // ignore this and the next edge (and don't reset the timer)
+    ignore_edge = true;
+    return;
+  }
   bool state = (GPIO_PIN_SET == HAL_GPIO_ReadPin(RF_Pin_GPIO_Port, RF_Pin_Pin));
   if (state)
   {
