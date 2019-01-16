@@ -88,35 +88,31 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define B1_Pin GPIO_PIN_0
-#define B1_GPIO_Port GPIOA
-#define CC1101_SCK_Pin GPIO_PIN_5
-#define CC1101_SCK_GPIO_Port GPIOA
-#define CC1101_MISO_Pin GPIO_PIN_6
-#define CC1101_MISO_GPIO_Port GPIOA
-#define CC1101_MOSI_Pin GPIO_PIN_7
-#define CC1101_MOSI_GPIO_Port GPIOA
-#define BOOT1_Pin GPIO_PIN_2
-#define BOOT1_GPIO_Port GPIOB
-#define LD4_Pin GPIO_PIN_12
-#define LD4_GPIO_Port GPIOD
-#define LD3_Pin GPIO_PIN_13
-#define LD3_GPIO_Port GPIOD
-#define LD5_Pin GPIO_PIN_14
-#define LD5_GPIO_Port GPIOD
-#define LD6_Pin GPIO_PIN_15
-#define LD6_GPIO_Port GPIOD
-#define RF_Pin_Pin GPIO_PIN_8
-#define RF_Pin_GPIO_Port GPIOC
-#define RF_Pin_EXTI_IRQn EXTI9_5_IRQn
-#define SWDIO_Pin GPIO_PIN_13
-#define SWDIO_GPIO_Port GPIOA
-#define SWCLK_Pin GPIO_PIN_14
-#define SWCLK_GPIO_Port GPIOA
-#define CC1101_NSS_Pin GPIO_PIN_15
-#define CC1101_NSS_GPIO_Port GPIOA
-#define CC1101_GDO2_Pin GPIO_PIN_0
-#define CC1101_GDO2_GPIO_Port GPIOD
+#define PHY_nRST_Pin GPIO_PIN_0
+#define PHY_nRST_GPIO_Port GPIOC
+#define LED1_Pin GPIO_PIN_4
+#define LED1_GPIO_Port GPIOA
+#define LED2_Pin GPIO_PIN_5
+#define LED2_GPIO_Port GPIOA
+#define LED3_Pin GPIO_PIN_6
+#define LED3_GPIO_Port GPIOA
+#define CC1101_GDO0_Pin GPIO_PIN_7
+#define CC1101_GDO0_GPIO_Port GPIOC
+#define CC1101_GDO0_EXTI_IRQn EXTI9_5_IRQn
+#define USB_VBUS_DETECT_Pin GPIO_PIN_9
+#define USB_VBUS_DETECT_GPIO_Port GPIOA
+#define CC1101_GDO2_Pin GPIO_PIN_15
+#define CC1101_GDO2_GPIO_Port GPIOA
+#define CC1101_SCK_Pin GPIO_PIN_3
+#define CC1101_SCK_GPIO_Port GPIOB
+#define CC1101_MISO_Pin GPIO_PIN_4
+#define CC1101_MISO_GPIO_Port GPIOB
+#define CC1101_MOSI_Pin GPIO_PIN_5
+#define CC1101_MOSI_GPIO_Port GPIOB
+#define CC1101_NSS_Pin GPIO_PIN_6
+#define CC1101_NSS_GPIO_Port GPIOB
+#define PCM_RESET_Pin GPIO_PIN_8
+#define PCM_RESET_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

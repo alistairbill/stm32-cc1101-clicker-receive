@@ -1,9 +1,14 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    stm32f4xx_it.h
-  * @brief   This file contains the headers of the interrupt handlers.
+  * File Name          : RNG.c
+  * Description        : This file provides code for the configuration
+  *                      of the RNG instances.
   ******************************************************************************
+  ** This notice applies to any and all portions of this file
+  * that are not between comment pairs USER CODE BEGIN and
+  * USER CODE END. Other portions of this file, whether 
+  * inserted by the user or by software development tools
+  * are owned by their respective copyright owners.
   *
   * COPYRIGHT(c) 2019 STMicroelectronics
   *
@@ -31,55 +36,62 @@
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F4xx_IT_H
-#define __STM32F4xx_IT_H
+/* Includes ------------------------------------------------------------------*/
+#include "rng.h"
 
-#ifdef __cplusplus
- extern "C" {
-#endif 
+/* USER CODE BEGIN 0 */
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+/* USER CODE END 0 */
 
-/* USER CODE END Includes */
+RNG_HandleTypeDef hrng;
 
-/* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
+/* RNG init function */
+void MX_RNG_Init(void)
+{
 
-/* USER CODE END ET */
+  hrng.Instance = RNG;
+  if (HAL_RNG_Init(&hrng) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-/* Exported constants --------------------------------------------------------*/
-/* USER CODE BEGIN EC */
-
-/* USER CODE END EC */
-
-/* Exported macro ------------------------------------------------------------*/
-/* USER CODE BEGIN EM */
-
-/* USER CODE END EM */
-
-/* Exported functions prototypes ---------------------------------------------*/
-void NMI_Handler(void);
-void HardFault_Handler(void);
-void MemManage_Handler(void);
-void BusFault_Handler(void);
-void UsageFault_Handler(void);
-void SVC_Handler(void);
-void DebugMon_Handler(void);
-void PendSV_Handler(void);
-void EXTI9_5_IRQHandler(void);
-void TIM1_UP_TIM10_IRQHandler(void);
-/* USER CODE BEGIN EFP */
-
-/* USER CODE END EFP */
-
-#ifdef __cplusplus
 }
-#endif
 
-#endif /* __STM32F4xx_IT_H */
+void HAL_RNG_MspInit(RNG_HandleTypeDef* rngHandle)
+{
+
+  if(rngHandle->Instance==RNG)
+  {
+  /* USER CODE BEGIN RNG_MspInit 0 */
+
+  /* USER CODE END RNG_MspInit 0 */
+    /* RNG clock enable */
+    __HAL_RCC_RNG_CLK_ENABLE();
+  /* USER CODE BEGIN RNG_MspInit 1 */
+
+  /* USER CODE END RNG_MspInit 1 */
+  }
+}
+
+void HAL_RNG_MspDeInit(RNG_HandleTypeDef* rngHandle)
+{
+
+  if(rngHandle->Instance==RNG)
+  {
+  /* USER CODE BEGIN RNG_MspDeInit 0 */
+
+  /* USER CODE END RNG_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_RNG_CLK_DISABLE();
+  /* USER CODE BEGIN RNG_MspDeInit 1 */
+
+  /* USER CODE END RNG_MspDeInit 1 */
+  }
+} 
+
+/* USER CODE BEGIN 1 */
+
+/* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

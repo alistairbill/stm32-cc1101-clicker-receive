@@ -1,9 +1,14 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    stm32f4xx_it.h
-  * @brief   This file contains the headers of the interrupt handlers.
+  * File Name          : RTC.c
+  * Description        : This file provides code for the configuration
+  *                      of the RTC instances.
   ******************************************************************************
+  ** This notice applies to any and all portions of this file
+  * that are not between comment pairs USER CODE BEGIN and
+  * USER CODE END. Other portions of this file, whether 
+  * inserted by the user or by software development tools
+  * are owned by their respective copyright owners.
   *
   * COPYRIGHT(c) 2019 STMicroelectronics
   *
@@ -31,55 +36,70 @@
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F4xx_IT_H
-#define __STM32F4xx_IT_H
+/* Includes ------------------------------------------------------------------*/
+#include "rtc.h"
 
-#ifdef __cplusplus
- extern "C" {
-#endif 
+/* USER CODE BEGIN 0 */
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+/* USER CODE END 0 */
 
-/* USER CODE END Includes */
+RTC_HandleTypeDef hrtc;
 
-/* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
+/* RTC init function */
+void MX_RTC_Init(void)
+{
 
-/* USER CODE END ET */
+  /**Initialize RTC Only 
+  */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-/* Exported constants --------------------------------------------------------*/
-/* USER CODE BEGIN EC */
-
-/* USER CODE END EC */
-
-/* Exported macro ------------------------------------------------------------*/
-/* USER CODE BEGIN EM */
-
-/* USER CODE END EM */
-
-/* Exported functions prototypes ---------------------------------------------*/
-void NMI_Handler(void);
-void HardFault_Handler(void);
-void MemManage_Handler(void);
-void BusFault_Handler(void);
-void UsageFault_Handler(void);
-void SVC_Handler(void);
-void DebugMon_Handler(void);
-void PendSV_Handler(void);
-void EXTI9_5_IRQHandler(void);
-void TIM1_UP_TIM10_IRQHandler(void);
-/* USER CODE BEGIN EFP */
-
-/* USER CODE END EFP */
-
-#ifdef __cplusplus
 }
-#endif
 
-#endif /* __STM32F4xx_IT_H */
+void HAL_RTC_MspInit(RTC_HandleTypeDef* rtcHandle)
+{
+
+  if(rtcHandle->Instance==RTC)
+  {
+  /* USER CODE BEGIN RTC_MspInit 0 */
+
+  /* USER CODE END RTC_MspInit 0 */
+    /* RTC clock enable */
+    __HAL_RCC_RTC_ENABLE();
+  /* USER CODE BEGIN RTC_MspInit 1 */
+
+  /* USER CODE END RTC_MspInit 1 */
+  }
+}
+
+void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
+{
+
+  if(rtcHandle->Instance==RTC)
+  {
+  /* USER CODE BEGIN RTC_MspDeInit 0 */
+
+  /* USER CODE END RTC_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_RTC_DISABLE();
+  /* USER CODE BEGIN RTC_MspDeInit 1 */
+
+  /* USER CODE END RTC_MspDeInit 1 */
+  }
+} 
+
+/* USER CODE BEGIN 1 */
+
+/* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

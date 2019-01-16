@@ -1,120 +1,129 @@
 #include "decoder.h"
+#include "cc1101.h"
 #include "main.h"
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
-#define SYNC_HIGH_US 45
-#define SYNC_LOW_US 1500
-#define BIT_ONE_HIGH_US 150
-#define BIT_ONE_LOW_US 45
-#define BIT_ZERO_HIGH_US 45
-#define BIT_ZERO_LOW_US 150
+#define MAX_CHANGES 67
 
 extern TIM_HandleTypeDef htim3;
 
-typedef enum
-{
-  RX_SYNC,
-  RX_PAYLOAD
-} rx_mode;
+typedef struct {
+    uint8_t high;
+    uint8_t low;
+} pulse_t;
 
-rx_mode mode = RX_SYNC;
-uint32_t last_pulse_width = 0;
-size_t bits = 0;
-uint32_t data = 0;
-uint32_t times[1024];
-size_t counter = 0;
-bool ignore_edge = false;
-bool initialized = false;
+typedef struct {
+    uint8_t bitlength;
+    pulse_t sync;
+    pulse_t zero;
+    pulse_t one;
+} protocol_t;
 
-void Decoder_Init()
+static const unsigned int separation_limit = 3000;
+static const protocol_t protocols[] = {
+    { 24, { 1, 31 }, {1, 3}, {3, 1} } // PT2240
+};
+static const unsigned int protocols_len = sizeof(protocols) / sizeof(protocols[0]);
+
+static const int receive_tolerance = 60;
+static bool initialized = false;
+static bool ignore_pulse = false;
+
+static volatile unsigned int change_count = 0;
+static volatile unsigned int repeat_count = 0;
+static volatile unsigned int timings[MAX_CHANGES];
+
+void Decoder_Init(void)
 {
-  HAL_TIM_Base_Start(&htim3);
-  initialized = true;
+    CC1101_Init();
+    HAL_TIM_Base_Start(&htim3);
+    initialized = true;
 }
 
-void Data_Received(void)
+static inline unsigned int diff(int a, int b)
 {
-  printf("%lu", data);
+    return abs(a - b);
 }
 
-static int abs(int a) 
+static void send_message(unsigned int value, int p)
 {
-  return (a < 0) ? -a : a;
+    switch(p) {
+        case 0:
+            // PT2240: 20 address bits followed by 4 data bits
+            printf("address: %u, cmd: %u", value >> 4, value & 0xf);
+            break;
+    }
 }
 
-/* Is a == (b +/- b/4)? */
-static bool approx_eq(uint32_t a, uint32_t b)
+static bool receive_protocol(const int p, unsigned int changes)
 {
-  int tol = (b < 4) ? 1 : (b / 4);
-  return (abs(a - b) <= tol);
-}
+    protocol_t protocol;
+    memcpy(&protocol, &protocols[p], sizeof(protocol_t));
+    unsigned int code = 0;
+    const int delay = timings[0] / protocol.sync.low;
+    const int delay_tolerance = delay * receive_tolerance / 100;
+    for (unsigned int i = 1; i < changes - 1; i += 2) {
+        code <<= 1;
+        if (diff(timings[i], delay * protocol.zero.high) < delay_tolerance &&
+            diff(timings[i + 1], delay * protocol.zero.low) < delay_tolerance) {
+            // zero
+        } else if (diff(timings[i], delay * protocol.one.high) < delay_tolerance &&
+                   diff(timings[i + 1], delay * protocol.one.low) < delay_tolerance) {
+            // one
+            code |= 1;
+        } else {
+            return false;
+        }
+    }
 
-static void sync(uint32_t high_pulse_width, uint32_t low_pulse_width)
-{
-  if(approx_eq(high_pulse_width, SYNC_HIGH_US) && approx_eq(low_pulse_width, SYNC_LOW_US)) {
-      // ignore this pulse but start pushing data on the next pulse
-      mode = RX_PAYLOAD;
-  }
-}
+    if ((changes - 1) / 2 == protocol.bitlength) {
+        send_message(code, p);
+        return true;
+    }
 
-static void payload(uint32_t high_pulse_width, uint32_t low_pulse_width)
-{
-  if (approx_eq(high_pulse_width, BIT_ONE_HIGH_US) && approx_eq(low_pulse_width, BIT_ONE_LOW_US)) {
-    // one bit
-    data |= (1UL << bits++);
-  } else if (approx_eq(high_pulse_width, BIT_ZERO_HIGH_US) && approx_eq(low_pulse_width, BIT_ZERO_LOW_US)) {
-    // zero bit
-    data |= (0UL << bits++);
-  } else {
-    // fail! look for a sync bit again
-    mode = RX_SYNC;
-  }
-  if (bits >= 24) {
-    Data_Received();
-    // reset the state machine
-    bits = 0;
-    data = 0;
-    mode = RX_SYNC;
-  }
+    return false;
 }
 
 void Decoder_Edge_Callback(void)
 {
-  if (!initialized) {
-    return;
-  }
-  if (ignore_edge) {
-    ignore_edge = false;
-    return;
-  }
-  uint32_t pulse_width = __HAL_TIM_GetCounter(&htim3);
-  if (pulse_width > 30) {
-    __HAL_TIM_SetCounter(&htim3, 0);
-  } else {
-    // short pulse
-    // ignore this and the next edge (and don't reset the timer)
-    ignore_edge = true;
-    return;
-  }
-  bool state = (GPIO_PIN_SET == HAL_GPIO_ReadPin(RF_Pin_GPIO_Port, RF_Pin_Pin));
-  if (state)
-  {
-    // rising edge, the pulse width is the width of the previous low pulse
-    switch (mode) {
-    case RX_SYNC:
-      (void)sync(last_pulse_width, pulse_width);
-      break;
-    case RX_PAYLOAD:
-      (void)payload(last_pulse_width, pulse_width);
-      break;
+    if (!initialized) {
+        return;
     }
-  } else {
-    // falling edge, the pulse width is the width of the previous high pulse
-    // save this pulse width but don't do anything until we know the length
-    // of the low pulse as well
-    last_pulse_width = pulse_width;
-  }
-  times[counter++] = pulse_width;
-  if (counter > 1023) counter = 0;
+
+    if (ignore_pulse) {
+        ignore_pulse = false;
+        return;
+    }
+
+    uint32_t pulse_width = __HAL_TIM_GetCounter(&htim3);
+    if (pulse_width >= 100) {
+        __HAL_TIM_SetCounter(&htim3, 0);
+    } else {
+        // short pulse
+        // ignore this and the next edge (and don't reset the timer)
+        ignore_pulse = true;
+        return;
+    }
+
+    if (pulse_width > separation_limit) {
+        if (diff(pulse_width, timings[0]) < 400) {
+            repeat_count++;
+            if (repeat_count == 2) {
+                for (int i = 0; i < protocols_len; i++){
+                    if (receive_protocol(i, change_count)) {
+                        break;
+                    }
+                }
+                repeat_count = 0;
+            }
+        }
+        change_count = 0;
+    }
+    if (change_count >= MAX_CHANGES) {
+        change_count = 0;
+        repeat_count = 0;
+    }
+    timings[change_count++] = pulse_width;
 }
