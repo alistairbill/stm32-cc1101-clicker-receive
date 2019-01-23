@@ -110,7 +110,7 @@ void Decoder_Edge_Callback(void)
     if (pulse_width > separation_limit) {
         if (diff(pulse_width, timings[0]) < 400) {
             repeat_count++;
-            if (repeat_count == 2) {
+            if (repeat_count == 1) {
                 for (int i = 0; i < protocols_len; i++){
                     if (receive_protocol(i, change_count)) {
                         break;
